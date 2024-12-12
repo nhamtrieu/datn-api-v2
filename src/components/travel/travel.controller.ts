@@ -15,7 +15,7 @@ import axios from "axios";
 import * as polyline from "@mapbox/polyline";
 import { TravelBookingDto } from "./dto/TravelBooking.dto";
 import { TravelService } from "./travel.service";
-import { ResponseDto } from "@/dto/response.dto";
+import { ResponseDto } from "@/components/dto/response.dto";
 
 @Controller("travel")
 @ApiTags("Travel")

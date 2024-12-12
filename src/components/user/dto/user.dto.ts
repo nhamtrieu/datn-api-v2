@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import VehicleDto from "./vehicle.dto";
-import { LocationDto } from "@/dto/location.dto";
+import { LocationDto } from "@/components/dto/location.dto";
 
 export class UserDto {
   @IsString()

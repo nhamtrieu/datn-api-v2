@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { FirebaseService } from "../firebase/firebase.service";
 import { DriverCreateDto, DriverDto } from "./dto";
-import { ResponseDto } from "@/dto/response.dto";
+import { ResponseDto } from "@/components/dto/response.dto";
 import { DriverResponseDto } from "./dto/driver-response.dto";
 import * as bcryptjs from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { DriverLoginDto } from "./dto/driver-login.dto";
 import { DriverUpdateDto } from "./dto/driver-update.dto";
 import { JwtService } from "@nestjs/jwt";
-import { LocationDto } from "@/dto/location.dto";
+import { LocationDto } from "@/components/dto/location.dto";
 import { UserDto } from "../user/dto/user.dto";
 
 @Injectable()

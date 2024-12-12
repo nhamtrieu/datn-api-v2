@@ -16,7 +16,7 @@ import { UserUpdateDto } from "./dto/user-update.dto";
 import { UserLoginDto } from "./dto/user-login.dto";
 import VehicleCreateDto from "./dto/vehicle-create.dto";
 import { Response } from "express";
-import { LocationDto } from "@/dto/location.dto";
+import { LocationDto } from "@/components/dto/location.dto";
 import { TravelService } from "../travel/travel.service";
 import VehicleUpdateDto from "./dto/vehicle-update.dto";
 

@@ -6,7 +6,7 @@ import {
   IsString,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { LocationDto } from "@/dto/location.dto";
+import { LocationDto } from "@/components/dto/location.dto";
 
 export class DriverDto {
   @IsString()
