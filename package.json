@@ -35,6 +35,7 @@
     "dotenv": "^16.4.5",
     "firebase": "^10.14.0",
     "firebase-admin": "^12.6.0",
+    "module-alias": "^2.2.3",
     "moment": "^2.30.1",
     "mysql2": "^3.11.3",
     "passport-jwt": "^4.0.1",
@@ -85,5 +86,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   }
 }
