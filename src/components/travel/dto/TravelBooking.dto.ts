@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { LocationDto } from "@/components/dto/location.dto";
+import { LocationDto } from "@/dto/location.dto";
 
 export class TravelBookingDto {
   @IsString()

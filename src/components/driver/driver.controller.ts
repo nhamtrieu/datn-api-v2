@@ -16,7 +16,7 @@ import { DriverService } from "./driver.service";
 import { DriverLoginDto } from "./dto/driver-login.dto";
 import { DriverUpdateDto } from "./dto/driver-update.dto";
 import { DriverFcmTokenDto } from "./dto/driver-fcm-token.dto";
-import { LocationDto } from "@/components/dto/location.dto";
+import { LocationDto } from "@/dto/location.dto";
 import { Response } from "express";
 
 @Controller("driver")

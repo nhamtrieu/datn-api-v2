@@ -1,4 +1,4 @@
-import { LocationDto } from "@/components/dto/location.dto";
+import { LocationDto } from "@/dto/location.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsObject, IsString } from "class-validator";
 
