@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsOptional, IsEnum } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { StatusEnum } from "@/enum/status.enum";
+import { StatusEnum } from "../../../enum/status.enum";
 
 export class CreateUserDto {
   @IsNotEmpty()
