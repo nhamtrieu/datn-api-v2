@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { DriverLoginDto } from "./dto/driver-login.dto";
 import { DriverUpdateDto } from "./dto/driver-update.dto";
 import { JwtService } from "@nestjs/jwt";
-import { LocationDto } from "@/dto/location.dto";
+import { LocationDto } from "../../dto/location.dto";
 import { UserDto } from "../user/dto/user.dto";
 
 @Injectable()
