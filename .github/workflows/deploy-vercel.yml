@@ -18,11 +18,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       # Step 3: Install dependencies (optional if your build requires dependencies to be installed)
       - name: Install dependencies
         run: npm install
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
       # Step 4: Deploy to Vercel
       - name: Deploy to Vercel
