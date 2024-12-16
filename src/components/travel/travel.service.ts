@@ -6,6 +6,7 @@ import { UserDto } from "../user/dto/user.dto";
 import { v4 as uuidv4 } from "uuid";
 import { TravelDto } from "./dto/travel.dto";
 import { DriverDto } from "../driver/dto";
+import { LocationDto } from "@/dto/location.dto";
 
 @Injectable()
 export class TravelService {
@@ -15,139 +16,231 @@ export class TravelService {
   ) {}
 
   async bookRide(travelBookingDto: TravelBookingDto): Promise<any> {
-    const bookingTimeout = setTimeout(
-      () => {
-        return {
-          message: "Không tìm được tài xế trong 5 phút",
-          status: "failed",
-        };
-      },
-      5 * 60 * 1000,
-    );
-    const drivers = await this.driverService.getAllAvailableDrivers(
-      travelBookingDto.pickupLocation,
-    );
+    return new Promise(async (resolve) => {
+      // Set timeout 5 phút
+      const bookingTimeout = setTimeout(
+        async () => {
+          const user: UserDto = await this.firebaseService.getData(
+            `users/${travelBookingDto.userId}`,
+          );
 
-    // Xếp hạng tài xế theo điểm
-    const sortedDrivers = drivers.sort((a, b) => b.rate - a.rate); // Giả sử có thuộc tính 'rating'
-
-    let driverAccepted = null;
-
-    const user: UserDto = await this.firebaseService.getData(
-      `users/${travelBookingDto.userId}`,
-    );
-
-    for (const driver of sortedDrivers) {
-      const travelId = uuidv4();
-      await this.firebaseService.sendNotification(driver.fcmToken, {
-        notification: {
-          title: "New order",
-          body: "Bạn có một đơn hàng mới",
-        },
-        data: {
-          type: "new-order",
-          driverId: driver.id.toString(),
-          pickupLocation: JSON.stringify(travelBookingDto.pickupLocation),
-          destinationLocation: JSON.stringify(
-            travelBookingDto.destinationLocation,
-          ),
-          fare: travelBookingDto.fare.toString(),
-          distance: travelBookingDto.distance.toString(),
-          duration: travelBookingDto.duration.toString(),
-          durationInTraffic: travelBookingDto.durationInTraffic.toString(),
-          polyline: JSON.stringify(travelBookingDto.polyline) || "",
-          userName: user.fullName || "",
-          userAvatar: user.userAvatar || "",
-          pickupString: travelBookingDto.pickupString || "",
-          destinationString: travelBookingDto.destinationString || "",
-          phoneNumber: user.phoneNumber || "",
-          travelId: travelId.toString(),
-          userId: travelBookingDto.userId || "",
-          driverLocation: JSON.stringify(driver.location),
-          userLocation: JSON.stringify(travelBookingDto.pickupLocation),
-        },
-      });
-
-      // Lắng nghe phản hồi từ tài xế
-      const response = await this.waitForDriverResponse(driver.id, 60 * 1000);
-      if (response) {
-        if (response.response === "accepted") {
-          driverAccepted = driver;
-          const travel = {
-            id: travelId,
-            driverId: driver.id,
-            userId: travelBookingDto.userId,
-            pickupLocation: travelBookingDto.pickupLocation,
-            destinationLocation: travelBookingDto.destinationLocation,
-            fare: travelBookingDto.fare,
-            distance: travelBookingDto.distance,
-            duration: travelBookingDto.duration,
-            durationInTraffic: travelBookingDto.durationInTraffic,
-            polyline: JSON.stringify(travelBookingDto.polyline) || "",
-            pickupString: travelBookingDto.pickupString || "",
-            destinationString: travelBookingDto.destinationString || "",
-            timeStart: new Date().toISOString(),
-            timeEnd: null,
-            status: "on-trip",
-          };
-
-          await Promise.all([
-            this.firebaseService.setData(
-              `drivers/${response.id}/status`,
-              "on-trip",
-            ),
-            this.firebaseService.setData(
-              `drivers/${response.id}/response`,
-              null,
-            ),
-            this.firebaseService.setData(`travels/${travelId}`, travel),
-          ]);
           const notification = {
-            title: "Order accepted",
-            body: "Đơn hàng đã được chấp nhận",
+            title: "Order failed",
+            body: "Không tìm được tài xế! Vui lòng thử lại sau ít phút!",
           };
+
           await this.firebaseService.sendNotification(user.fcmToken, {
             notification: notification,
+            data: { type: "booking-failed" },
+          });
+
+          resolve({
+            status: "failed",
+            message: "Không tìm được tài xế trong 5 phút",
+          });
+        },
+        5 * 60 * 1000,
+      );
+
+      try {
+        // Lấy danh sách tài xế có sẵn
+        const drivers = await this.driverService.getAllAvailableDrivers(
+          travelBookingDto.pickupLocation,
+        );
+
+        // Tính điểm cho mỗi tài xế dựa trên đánh giá và khoảng cách
+        const driversWithScore = drivers.map((driver) => {
+          // Tính khoảng cách từ tài xế đến điểm đón
+          const distance = this.calculateDistance(
+            driver.location,
+            travelBookingDto.pickupLocation,
+          );
+
+          // Chuẩn hóa điểm đánh giá (0-5) thành thang điểm 0-1
+          const normalizedRating = (driver.rate || 0) / 5;
+
+          // Chuẩn hóa khoảng cách (giả sử khoảng cách max là 10km) thành thang điểm 0-1
+          // Khoảng cách càng gần điểm càng cao
+          const normalizedDistance = 1 - Math.min(distance, 10000) / 10000;
+
+          // Tính điểm tổng hợp (70% đánh giá + 30% khoảng cách)
+          const score = normalizedRating * 0.7 + normalizedDistance * 0.3;
+
+          return {
+            ...driver,
+            score,
+            distance,
+          };
+        });
+
+        // Sắp xếp tài xế theo điểm từ cao xuống thấp
+        const sortedDrivers = driversWithScore.sort(
+          (a, b) => b.score - a.score,
+        );
+
+        // Lọc ra các tài xế trong bán kính 10km
+        const nearbyDrivers = sortedDrivers.filter(
+          (driver) => driver.distance <= 10000,
+        );
+
+        if (nearbyDrivers.length === 0) {
+          clearTimeout(bookingTimeout);
+          const user: UserDto = await this.firebaseService.getData(
+            `users/${travelBookingDto.userId}`,
+          );
+
+          await this.firebaseService.sendNotification(user.fcmToken, {
+            notification: {
+              title: "Order failed",
+              body: "Không có tài xế trong khu vực của bạn! Vui lòng thử lại sau!",
+            },
+            data: { type: "booking-failed" },
+          });
+
+          resolve({
+            status: "failed",
+            message: "Không có tài xế trong khu vực",
+          });
+          return;
+        }
+
+        const user: UserDto = await this.firebaseService.getData(
+          `users/${travelBookingDto.userId}`,
+        );
+
+        // Tiếp tục với vòng lặp gửi thông báo cho từng tài xế
+        for (const driver of nearbyDrivers) {
+          const travelId = uuidv4();
+
+          // Gửi thông báo cho tài xế
+          await this.firebaseService.sendNotification(driver.fcmToken, {
+            notification: {
+              title: "New order",
+              body: "Bạn có một đơn hàng mới",
+            },
             data: {
-              type: "driver-accepted",
-              travelId: travel.id.toString(),
+              type: "new-order",
               driverId: driver.id.toString(),
-              driverName: driver.fullName || "",
-              driverAvatar: driver.avatar || "",
-              phoneNumber: driver.phoneNumber || "",
-              pickupString: travel.pickupString || "",
-              destinationString: travel.destinationString || "",
-              pickup: JSON.stringify(travel.pickupLocation),
-              destination: JSON.stringify(travel.destinationLocation),
+              pickupLocation: JSON.stringify(travelBookingDto.pickupLocation),
+              destinationLocation: JSON.stringify(
+                travelBookingDto.destinationLocation,
+              ),
+              fare: travelBookingDto.fare.toString(),
+              distance: travelBookingDto.distance.toString(),
+              duration: travelBookingDto.duration.toString(),
+              durationInTraffic: travelBookingDto.durationInTraffic.toString(),
+              polyline: JSON.stringify(travelBookingDto.polyline) || "",
+              userName: user.fullName || "",
+              userAvatar: user.userAvatar || "",
+              pickupString: travelBookingDto.pickupString || "",
+              destinationString: travelBookingDto.destinationString || "",
+              phoneNumber: user.phoneNumber || "",
+              travelId: travelId.toString(),
+              userId: travelBookingDto.userId || "",
               driverLocation: JSON.stringify(driver.location),
-              userLocation: JSON.stringify(travel.pickupLocation),
-              driverRate: driver.avgRate ? driver.avgRate.toString() : "0",
+              userLocation: JSON.stringify(travelBookingDto.pickupLocation),
             },
           });
-          break;
-        } else if (response.response === "declined") {
-          continue;
-        }
-      }
-    }
 
-    if (driverAccepted) {
-      return { message: "Tài xế đã chấp nhận", driver: driverAccepted };
-    } else {
-      clearTimeout(bookingTimeout);
-      const notification = {
-        title: "Order failed",
-        body: "Không tìm được tài xế trong! Vui lòng thử lại sau ít phút!",
-      };
-      const data = {
-        type: "booking-failed",
-      };
-      await this.firebaseService.sendNotification(user.fcmToken, {
-        notification: notification,
-        data: data,
-      });
-      return { message: "Không tìm được tài xế trong 5 phút" };
-    }
+          // Chờ phản hồi từ tài xế trong 60 giây
+          const response = await this.waitForDriverResponse(
+            driver.id,
+            60 * 1000,
+          );
+
+          if (response && response.response === "accepted") {
+            // Tài xế chấp nhận
+            clearTimeout(bookingTimeout);
+
+            const travel = {
+              id: travelId,
+              driverId: driver.id,
+              userId: travelBookingDto.userId,
+              pickupLocation: travelBookingDto.pickupLocation,
+              destinationLocation: travelBookingDto.destinationLocation,
+              fare: travelBookingDto.fare,
+              distance: travelBookingDto.distance,
+              duration: travelBookingDto.duration,
+              durationInTraffic: travelBookingDto.durationInTraffic,
+              polyline: JSON.stringify(travelBookingDto.polyline) || "",
+              pickupString: travelBookingDto.pickupString || "",
+              destinationString: travelBookingDto.destinationString || "",
+              timeStart: new Date().toISOString(),
+              timeEnd: null,
+              status: "on-trip",
+            };
+
+            // Cập nhật trạng thái
+            await Promise.all([
+              this.firebaseService.setData(
+                `drivers/${response.id}/status`,
+                "on-trip",
+              ),
+              this.firebaseService.setData(
+                `drivers/${response.id}/response`,
+                null,
+              ),
+              this.firebaseService.setData(`travels/${travelId}`, travel),
+            ]);
+
+            // Gửi thông báo cho người dùng
+            await this.firebaseService.sendNotification(user.fcmToken, {
+              notification: {
+                title: "Order accepted",
+                body: "Đơn hàng đã được chấp nhận",
+              },
+              data: {
+                type: "driver-accepted",
+                travelId: travel.id.toString(),
+                driverId: driver.id.toString(),
+                driverName: driver.fullName || "",
+                driverAvatar: driver.avatar || "",
+                phoneNumber: driver.phoneNumber || "",
+                pickupString: travel.pickupString || "",
+                destinationString: travel.destinationString || "",
+                pickup: JSON.stringify(travel.pickupLocation),
+                destination: JSON.stringify(travel.destinationLocation),
+                driverLocation: JSON.stringify(driver.location),
+                userLocation: JSON.stringify(travel.pickupLocation),
+                driverRate: driver.avgRate ? driver.avgRate.toString() : "0",
+              },
+            });
+
+            resolve({
+              status: "success",
+              message: "Tài xế đã chấp nhận",
+              driver: driver,
+            });
+            return;
+          }
+          // Nếu tài xế từ chối hoặc không phản hồi, tiếp tục với tài xế tiếp theo
+        }
+
+        // Nếu không có tài xế nào chấp nhận
+        clearTimeout(bookingTimeout);
+        const notification = {
+          title: "Order failed",
+          body: "Không tìm được tài xế! Vui lòng thử lại sau ít phút!",
+        };
+
+        await this.firebaseService.sendNotification(user.fcmToken, {
+          notification: notification,
+          data: { type: "booking-failed" },
+        });
+
+        resolve({
+          status: "failed",
+          message: "Không tìm được tài xế",
+        });
+      } catch (error) {
+        clearTimeout(bookingTimeout);
+        resolve({
+          status: "error",
+          message: "Đã xảy ra lỗi khi đặt xe",
+          error: error.message,
+        });
+      }
+    });
   }
 
   async cancelBooking(bookingId: string, userId?: string, driverId?: string) {
@@ -456,5 +549,21 @@ export class TravelService {
       },
       code: 200,
     };
+  }
+
+  // Hàm tính khoảng cách giữa hai điểm (theo mét)
+  private calculateDistance(point1: LocationDto, point2: LocationDto): number {
+    const R = 6371000; // Bán kính Trái Đất tính bằng mét
+    const φ1 = (point1.latitude * Math.PI) / 180;
+    const φ2 = (point2.latitude * Math.PI) / 180;
+    const Δφ = ((point2.latitude - point1.latitude) * Math.PI) / 180;
+    const Δλ = ((point2.longitude - point1.longitude) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // khoảng cách tính bằng mét
   }
 }
