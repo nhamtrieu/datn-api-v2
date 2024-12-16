@@ -16,12 +16,17 @@ export class TravelService {
   ) {}
 
   async bookRide(travelBookingDto: TravelBookingDto): Promise<any> {
+    const user: UserDto = await this.firebaseService.getData(
+      `users/${travelBookingDto.userId}`,
+    );
     return new Promise(async (resolve) => {
+      console.log("Starting to search for drivers...");
+
       // Set timeout 5 phút
       const bookingTimeout = setTimeout(
         async () => {
-          const user: UserDto = await this.firebaseService.getData(
-            `users/${travelBookingDto.userId}`,
+          console.log(
+            "Booking timeout reached - No driver found within 5 minutes",
           );
 
           const notification = {
@@ -47,6 +52,8 @@ export class TravelService {
         const drivers = await this.driverService.getAllAvailableDrivers(
           travelBookingDto.pickupLocation,
         );
+
+        console.log(`Found ${drivers.length} available drivers`);
 
         // Tính điểm cho mỗi tài xế dựa trên đánh giá và khoảng cách
         const driversWithScore = drivers.map((driver) => {
@@ -78,12 +85,15 @@ export class TravelService {
           (a, b) => b.score - a.score,
         );
 
-        // Lọc ra các tài xế trong bán kính 10km
+        // Lọc ra các tài xế trong bán kính 3km
         const nearbyDrivers = sortedDrivers.filter(
-          (driver) => driver.distance <= 10000,
+          (driver) => driver.distance <= 3000,
         );
 
+        console.log(`Found ${nearbyDrivers.length} drivers within 10km radius`);
+
         if (nearbyDrivers.length === 0) {
+          console.log("No nearby drivers found - Booking failed");
           clearTimeout(bookingTimeout);
           const user: UserDto = await this.firebaseService.getData(
             `users/${travelBookingDto.userId}`,
@@ -110,6 +120,8 @@ export class TravelService {
 
         // Tiếp tục với vòng lặp gửi thông báo cho từng tài xế
         for (const driver of nearbyDrivers) {
+          console.log(`Sending booking request to driver ${driver.id}`);
+
           const travelId = uuidv4();
 
           // Gửi thông báo cho tài xế
@@ -149,6 +161,8 @@ export class TravelService {
           );
 
           if (response && response.response === "accepted") {
+            console.log(`Driver ${driver.id} accepted the booking`);
+
             // Tài xế chấp nhận
             clearTimeout(bookingTimeout);
 
@@ -216,6 +230,8 @@ export class TravelService {
           // Nếu tài xế từ chối hoặc không phản hồi, tiếp tục với tài xế tiếp theo
         }
 
+        console.log("No drivers accepted the booking request");
+
         // Nếu không có tài xế nào chấp nhận
         clearTimeout(bookingTimeout);
         const notification = {
@@ -234,6 +250,12 @@ export class TravelService {
         });
       } catch (error) {
         clearTimeout(bookingTimeout);
+        await this.firebaseService.sendNotification(user.fcmToken, {
+          notification: {
+            title: "Order failed",
+            body: "Đã xảy ra lỗi khi đặt xe",
+          },
+        });
         resolve({
           status: "error",
           message: "Đã xảy ra lỗi khi đặt xe",
