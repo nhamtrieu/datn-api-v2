@@ -59,7 +59,7 @@ export class TravelService {
           // Chuẩn hóa điểm đánh giá (0-5) thành thang điểm 0-1
           const normalizedRating = (driver.rate || 0) / 5;
 
-          // Chuẩn hóa khoảng cách (giả sử khoảng cách max là 10km) thành thang điểm 0-1
+          // Chuẩn hóa khoảng cách (khoảng cách max là 10km) thành thang điểm 0-1
           // Khoảng cách càng gần điểm càng cao
           const normalizedDistance = 1 - Math.min(distance, 10000) / 10000;
 

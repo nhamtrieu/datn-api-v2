@@ -27,6 +27,7 @@ export class TravelController {
     const baseFare = 20000;
     const pricePerKm = 5000;
     const congestionSurchargePerMin = 1000;
+    const nightTimeSurcharge = 20000;
 
     try {
       const directionsResponse = await axios.get(
@@ -53,11 +54,14 @@ export class TravelController {
       // Giải mã polyline
       const decodedPolyline = polyline.decode(encodedPolyline);
 
-      // Tính giá vé
       const distanceInKm = distance / 1000;
       let fare = baseFare + distanceInKm * pricePerKm;
 
-      // Nếu có thời gian tính theo kẹt xe, so sánh với thời gian bình thường
+      const currentHour = new Date().getHours();
+      if (currentHour >= 23 || currentHour < 5) {
+        fare += nightTimeSurcharge;
+      }
+
       if (durationInTraffic && durationInTraffic / duration >= 1.5) {
         const extraTime = durationInTraffic - duration;
         const extraCharge = (extraTime / 60) * congestionSurchargePerMin;
