@@ -137,7 +137,27 @@ export class DriverService {
     id: string,
     body: DriverUpdateDto,
   ): Promise<ResponseDto<DriverResponseDto>> {
-    await this.firebaseService.setData(`drivers/${id}`, body);
+    const driver = await this.firebaseService.getData(`drivers/${id}`);
+    if (!driver) {
+      return {
+        status: "error",
+        message: "Tài xế không tồn tại",
+        data: null,
+        code: 404,
+      };
+    }
+
+    if (body.password) {
+      const hashedPassword = await bcryptjs.hash(body.password, 10);
+      body.password = hashedPassword;
+    }
+
+    const driverUpdate: DriverDto = {
+      ...driver,
+      ...body,
+    };
+
+    await this.firebaseService.setData(`drivers/${id}`, driverUpdate);
 
     return {
       status: "success",

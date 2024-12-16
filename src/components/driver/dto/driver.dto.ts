@@ -14,17 +14,14 @@ export class DriverDto {
   id: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty()
   password: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty()
   fullName: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty()
   phoneNumber: string;
 
