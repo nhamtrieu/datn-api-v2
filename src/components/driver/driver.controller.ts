@@ -44,6 +44,7 @@ export class DriverController {
 
   @Put(":id")
   async update(@Param("id") id: string, @Body() body: DriverUpdateDto) {
+    console.log("in controller: ", id, body);
     return await this.driverService.update(id, body);
   }
 
