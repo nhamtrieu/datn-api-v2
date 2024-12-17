@@ -227,24 +227,6 @@ export class DriverService {
       `drivers/${driverId}/response`,
       response,
     );
-    // const dataSend = {
-    //   type: "driver-accepted",
-    //   driverName: driver.fullName,
-    //   driverAvatar: driver.avatar ? driver.avatar : "",
-    //   driverPhone: driver.phoneNumber,
-    //   driverLocation: JSON.stringify(driver.location),
-    //   driverRate: driver.avgRate ? driver.avgRate.toString() : "0",
-    // };
-
-    // console.log("dataSend", dataSend);
-
-    // await this.firebaseService.sendNotification(user.fcmToken, {
-    //   notification: {
-    //     title: "New Response",
-    //     body: response,
-    //   },
-    //   data: dataSend,
-    // });
   }
 
   async updateDriverLocation(driverId: string, location: LocationDto) {

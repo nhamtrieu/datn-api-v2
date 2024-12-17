@@ -44,7 +44,7 @@ export class TravelService {
             message: "Không tìm được tài xế trong 5 phút",
           });
         },
-        5 * 60 * 1000,
+        4 * 60 * 1000,
       );
 
       try {
@@ -57,20 +57,12 @@ export class TravelService {
 
         // Tính điểm cho mỗi tài xế dựa trên đánh giá và khoảng cách
         const driversWithScore = drivers.map((driver) => {
-          // Tính khoảng cách từ tài xế đến điểm đón
           const distance = this.calculateDistance(
             driver.location,
             travelBookingDto.pickupLocation,
           );
-
-          // Chuẩn hóa điểm đánh giá (0-5) thành thang điểm 0-1
           const normalizedRating = (driver.rate || 0) / 5;
-
-          // Chuẩn hóa khoảng cách (khoảng cách max là 10km) thành thang điểm 0-1
-          // Khoảng cách càng gần điểm càng cao
           const normalizedDistance = 1 - Math.min(distance, 10000) / 10000;
-
-          // Tính điểm tổng hợp (70% đánh giá + 30% khoảng cách)
           const score = normalizedRating * 0.7 + normalizedDistance * 0.3;
 
           return {
@@ -90,33 +82,12 @@ export class TravelService {
           (driver) => driver.distance <= 3000,
         );
 
-        console.log(`Found ${nearbyDrivers.length} drivers within 10km radius`);
+        console.log(`Found ${nearbyDrivers.length} drivers within 3km radius`);
 
         if (nearbyDrivers.length === 0) {
-          console.log("No nearby drivers found - Booking failed");
-          clearTimeout(bookingTimeout);
-          const user: UserDto = await this.firebaseService.getData(
-            `users/${travelBookingDto.userId}`,
-          );
-
-          await this.firebaseService.sendNotification(user.fcmToken, {
-            notification: {
-              title: "Order failed",
-              body: "Không có tài xế trong khu vực của bạn! Vui lòng thử lại sau!",
-            },
-            data: { type: "booking-failed" },
-          });
-
-          resolve({
-            status: "failed",
-            message: "Không có tài xế trong khu vực",
-          });
+          console.log("No nearby drivers found - Waiting for timeout");
           return;
         }
-
-        const user: UserDto = await this.firebaseService.getData(
-          `users/${travelBookingDto.userId}`,
-        );
 
         // Tiếp tục với vòng lặp gửi thông báo cho từng tài xế
         for (const driver of nearbyDrivers) {
@@ -154,10 +125,10 @@ export class TravelService {
             },
           });
 
-          // Chờ phản hồi từ tài xế trong 60 giây
+          // Chờ phản hồi từ tài xế trong 20 giây
           const response = await this.waitForDriverResponse(
             driver.id,
-            60 * 1000,
+            20 * 1000,
           );
 
           if (response && response.response === "accepted") {
@@ -230,24 +201,11 @@ export class TravelService {
           // Nếu tài xế từ chối hoặc không phản hồi, tiếp tục với tài xế tiếp theo
         }
 
-        console.log("No drivers accepted the booking request");
-
-        // Nếu không có tài xế nào chấp nhận
-        clearTimeout(bookingTimeout);
-        const notification = {
-          title: "Order failed",
-          body: "Không tìm được tài xế! Vui lòng thử lại sau ít phút!",
-        };
-
-        await this.firebaseService.sendNotification(user.fcmToken, {
-          notification: notification,
-          data: { type: "booking-failed" },
-        });
-
-        resolve({
-          status: "failed",
-          message: "Không tìm được tài xế",
-        });
+        console.log(
+          "No drivers accepted the booking request - Waiting for timeout",
+        );
+        // Để timeout tự xử lý việc không có tài xế chấp nhận
+        return;
       } catch (error) {
         clearTimeout(bookingTimeout);
         await this.firebaseService.sendNotification(user.fcmToken, {
@@ -323,6 +281,11 @@ export class TravelService {
 
     const travel: TravelDto = await this.firebaseService.getData(
       `travels/${bookingId}`,
+    );
+
+    await this.firebaseService.setData(
+      `drivers/${travel.driverId}/response`,
+      null,
     );
 
     travel.timeEnd = new Date().toISOString();
