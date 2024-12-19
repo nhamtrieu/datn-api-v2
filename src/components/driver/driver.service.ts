@@ -190,6 +190,7 @@ export class DriverService {
         driver.location.latitude,
         driver.location.longitude,
       );
+      console.log("distance in driverservice: ", distance);
       if (distance <= 3 && driver.status === "available") {
         availableDrivers.push(driver);
       }
