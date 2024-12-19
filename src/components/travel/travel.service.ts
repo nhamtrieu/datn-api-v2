@@ -57,11 +57,7 @@ export class TravelService {
 
         // Tính điểm cho mỗi tài xế dựa trên đánh giá và khoảng cách
         const driversWithScore = drivers.map((driver) => {
-          const distance = this.calculateDistance(
-            driver.location,
-            travelBookingDto.pickupLocation,
-          );
-          console.log("distance: ", distance);
+          const distance = driver.distance;
           const normalizedRating = (driver.rate || 0) / 5;
           const normalizedDistance = 1 - Math.min(distance, 3000) / 3000;
           const score = normalizedRating * 0.7 + normalizedDistance * 0.3;
@@ -69,7 +65,6 @@ export class TravelService {
           return {
             ...driver,
             score,
-            distance,
           };
         });
 

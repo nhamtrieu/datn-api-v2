@@ -182,8 +182,19 @@ export class DriverService {
   ): Promise<DriverResponseDto[]> {
     const drivers: DriverDto[] =
       await this.firebaseService.getDataByPath("drivers");
+    const listDrivers = [];
+    
+    if (drivers) {
+      Object.keys(drivers).forEach((key) => {
+        listDrivers.push(drivers[key]);
+      });
+    }
+
+    if(listDrivers.length <= 0) return [];
+
     const availableDrivers = [];
-    drivers.forEach((driver) => {
+    listDrivers.forEach((driver) => {
+      
       const distance = this.calculateDistance(
         pickup.latitude,
         pickup.longitude,
