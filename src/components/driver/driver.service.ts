@@ -192,7 +192,10 @@ export class DriverService {
       );
       console.log("distance in driverservice: ", distance);
       if (distance <= 3 && driver.status === "available") {
-        availableDrivers.push(driver);
+        availableDrivers.push({
+          ...driver,
+          distance
+        });
       }
     });
 
