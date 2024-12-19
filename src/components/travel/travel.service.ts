@@ -61,8 +61,9 @@ export class TravelService {
             driver.location,
             travelBookingDto.pickupLocation,
           );
+          console.log("distance: ", distance);
           const normalizedRating = (driver.rate || 0) / 5;
-          const normalizedDistance = 1 - Math.min(distance, 10000) / 10000;
+          const normalizedDistance = 1 - Math.min(distance, 3000) / 3000;
           const score = normalizedRating * 0.7 + normalizedDistance * 0.3;
 
           return {
