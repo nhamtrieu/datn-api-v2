@@ -6,7 +6,6 @@ import { UserDto } from "../user/dto/user.dto";
 import { v4 as uuidv4 } from "uuid";
 import { TravelDto } from "./dto/travel.dto";
 import { DriverDto } from "../driver/dto";
-import { LocationDto } from "@/dto/location.dto";
 
 @Injectable()
 export class TravelService {
@@ -277,8 +276,8 @@ export class TravelService {
     );
 
     await this.firebaseService.setData(
-      `drivers/${travel.driverId}/response`,
-      null,
+      `drivers/${travel.driverId}/status`,
+      "available",
     );
 
     travel.timeEnd = new Date().toISOString();
@@ -526,21 +525,5 @@ export class TravelService {
       },
       code: 200,
     };
-  }
-
-  // Hàm tính khoảng cách giữa hai điểm (theo mét)
-  private calculateDistance(point1: LocationDto, point2: LocationDto): number {
-    const R = 6371000; // Bán kính Trái Đất tính bằng mét
-    const φ1 = (point1.latitude * Math.PI) / 180;
-    const φ2 = (point2.latitude * Math.PI) / 180;
-    const Δφ = ((point2.latitude - point1.latitude) * Math.PI) / 180;
-    const Δλ = ((point2.longitude - point1.longitude) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // khoảng cách tính bằng mét
   }
 }
