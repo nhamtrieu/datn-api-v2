@@ -57,18 +57,14 @@ export class TravelService {
 
         // Tính điểm cho mỗi tài xế dựa trên đánh giá và khoảng cách
         const driversWithScore = drivers.map((driver) => {
-          const distance = this.calculateDistance(
-            driver.location,
-            travelBookingDto.pickupLocation,
-          );
+          const distance = driver.distance;
           const normalizedRating = (driver.rate || 0) / 5;
-          const normalizedDistance = 1 - Math.min(distance, 10000) / 10000;
+          const normalizedDistance = 1 - Math.min(distance, 3000) / 3000;
           const score = normalizedRating * 0.7 + normalizedDistance * 0.3;
 
           return {
             ...driver,
             score,
-            distance,
           };
         });
 
@@ -212,7 +208,7 @@ export class TravelService {
           },
         });
         resolve({
-          status: "error",
+          status: "error",``
           message: "Đã xảy ra lỗi khi đặt xe",
           error: error.message,
         });
