@@ -208,7 +208,7 @@ export class TravelService {
           },
         });
         resolve({
-          status: "error",``
+          status: "error",
           message: "Đã xảy ra lỗi khi đặt xe",
           error: error.message,
         });
@@ -435,7 +435,6 @@ export class TravelService {
           driverRef.off(); // Ngắt lắng nghe sau khi nhận phản hồi
           resolve({ response, id: driverId }); // Trả về phản hồi
         }
-        // Thêm điều kiện để lắng nghe các trạng thái khác nếu cần
       });
     });
   }
