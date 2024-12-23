@@ -198,20 +198,17 @@ export class TravelService {
             });
             return;
           }
-          // Nếu tài xế từ chối hoặc không phản hồi, tiếp tục với tài xế tiếp theo
         }
-
-        console.log(
-          "No drivers accepted the booking request - Waiting for timeout",
-        );
-        // Để timeout tự xử lý việc không có tài xế chấp nhận
-        return;
       } catch (error) {
         clearTimeout(bookingTimeout);
         await this.firebaseService.sendNotification(user.fcmToken, {
           notification: {
             title: "Order failed",
             body: "Đã xảy ra lỗi khi đặt xe",
+          },
+          data: {
+            type: "booking-failed",
+            error: error.message,
           },
         });
         resolve({
