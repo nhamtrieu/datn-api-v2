@@ -126,6 +126,8 @@ export class TravelService {
             20 * 1000,
           );
 
+          console.log("driver response: ", response);
+
           if (response && response.response === "accepted") {
             console.log(`Driver ${driver.id} accepted the booking`);
 
