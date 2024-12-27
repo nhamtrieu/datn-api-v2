@@ -23,7 +23,7 @@ export class DriverService {
   ): Promise<ResponseDto<DriverResponseDto>> {
     console.log(body);
     const checkDriver = await this.firebaseService.getDriverByPhoneNumber(
-      body.phoneNumber,
+      body.phoneNumber.trim(),
     );
     if (checkDriver) {
       return {
@@ -167,34 +167,31 @@ export class DriverService {
     };
   }
 
-  async getDrivers(): Promise<ResponseDto<DriverResponseDto[]>> {
-    const drivers = await this.firebaseService.getData("drivers");
-    return {
-      status: "success",
-      message: "Drivers fetched successfully",
-      data: drivers,
-      code: 200,
-    };
-  }
+  // async getDrivers(): Promise<ResponseDto<DriverResponseDto[]>> {
+  //   const drivers = await this.firebaseService.getData("drivers");
+  //   return {
+  //     status: "success",
+  //     message: "Drivers fetched successfully",
+  //     data: drivers,
+  //     code: 200,
+  //   };
+  // }
 
-  async getAllAvailableDrivers(
-    pickup: LocationDto,
-  ): Promise<DriverResponseDto[]> {
+  async getAllAvailableDrivers(pickup: LocationDto): Promise<any> {
     const drivers: DriverDto[] =
       await this.firebaseService.getDataByPath("drivers");
     const listDrivers = [];
-    
+
     if (drivers) {
       Object.keys(drivers).forEach((key) => {
         listDrivers.push(drivers[key]);
       });
     }
 
-    if(listDrivers.length <= 0) return [];
+    if (listDrivers.length <= 0) return [];
 
     const availableDrivers = [];
     listDrivers.forEach((driver) => {
-      
       const distance = this.calculateDistance(
         pickup.latitude,
         pickup.longitude,
@@ -205,7 +202,7 @@ export class DriverService {
       if (distance <= 3 && driver.status === "available") {
         availableDrivers.push({
           ...driver,
-          distance
+          distance,
         });
       }
     });
@@ -244,12 +241,12 @@ export class DriverService {
     );
   }
 
-  async updateDriverLocation(driverId: string, location: LocationDto) {
-    await this.firebaseService.setData(
-      `drivers/${driverId}/location`,
-      location,
-    );
-  }
+  // async updateDriverLocation(driverId: string, location: LocationDto) {
+  //   await this.firebaseService.setData(
+  //     `drivers/${driverId}/location`,
+  //     location,
+  //   );
+  // }
 
   async updateDriverStatus(driverId: string, status: string) {
     const driver = await this.firebaseService.getData(`drivers/${driverId}`);

@@ -21,7 +21,7 @@ export class TravelService {
     return new Promise(async (resolve) => {
       console.log("Starting to search for drivers...");
 
-      // Set timeout 5 phút
+      // Set timeout 1 phút
       const bookingTimeout = setTimeout(
         async () => {
           console.log(
@@ -43,7 +43,7 @@ export class TravelService {
             message: "Không tìm được tài xế trong 5 phút",
           });
         },
-        4 * 60 * 1000,
+        1 * 60 * 1000,
       );
 
       try {
@@ -197,6 +197,7 @@ export class TravelService {
           }
         }
       } catch (error) {
+        console.log("error: ", error);
         clearTimeout(bookingTimeout);
         await this.firebaseService.sendNotification(user.fcmToken, {
           notification: {

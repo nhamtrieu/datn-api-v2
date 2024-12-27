@@ -121,42 +121,42 @@ export class UserService {
     };
   }
 
-  async updateUserPassword(id: string, password: string, oldPassword: string) {
-    const checkUser = await this.firebaseService.getData(`users/${id}`);
+  // async updateUserPassword(id: string, password: string, oldPassword: string) {
+  //   const checkUser = await this.firebaseService.getData(`users/${id}`);
 
-    if (!checkUser) {
-      return {
-        status: "error",
-        message: "User not found",
-        data: null,
-        code: 404,
-      };
-    }
+  //   if (!checkUser) {
+  //     return {
+  //       status: "error",
+  //       message: "User not found",
+  //       data: null,
+  //       code: 404,
+  //     };
+  //   }
 
-    const isPasswordValid = await this.validateUser(
-      oldPassword,
-      checkUser.password,
-    );
+  //   const isPasswordValid = await this.validateUser(
+  //     oldPassword,
+  //     checkUser.password,
+  //   );
 
-    if (!isPasswordValid) {
-      return {
-        status: "error",
-        message: "Invalid old password",
-        data: null,
-        code: 401,
-      };
-    }
+  //   if (!isPasswordValid) {
+  //     return {
+  //       status: "error",
+  //       message: "Invalid old password",
+  //       data: null,
+  //       code: 401,
+  //     };
+  //   }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await this.firebaseService.setData(`users/${id}/password`, hashedPassword);
+  //   const hashedPassword = await bcrypt.hash(password, 10);
+  //   await this.firebaseService.setData(`users/${id}/password`, hashedPassword);
 
-    return {
-      status: "success",
-      message: "Password updated successfully",
-      data: null,
-      code: 200,
-    };
-  }
+  //   return {
+  //     status: "success",
+  //     message: "Password updated successfully",
+  //     data: null,
+  //     code: 200,
+  //   };
+  // }
 
   async deleteUser(id: string): Promise<ResponseDto<null>> {
     const checkUser = await this.firebaseService.getData(`users/${id}`);
@@ -200,15 +200,15 @@ export class UserService {
     };
   }
 
-  async getUsers(): Promise<ResponseDto<UserResponseDto[]>> {
-    const users = await this.firebaseService.getData("users");
-    return {
-      status: "success",
-      message: "Users fetched successfully",
-      data: users,
-      code: 200,
-    };
-  }
+  // async getUsers(): Promise<ResponseDto<UserResponseDto[]>> {
+  //   const users = await this.firebaseService.getData("users");
+  //   return {
+  //     status: "success",
+  //     message: "Users fetched successfully",
+  //     data: users,
+  //     code: 200,
+  //   };
+  // }
 
   async login(
     body: UserLoginDto,

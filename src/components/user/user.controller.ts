@@ -65,23 +65,6 @@ export class UserController {
     }
   }
 
-  @Put(":id/update-password")
-  async updateUserPassword(
-    @Param("id") id: string,
-    @Body() body: { password: string; oldPassword: string },
-    @Res() res: Response,
-  ) {
-    return res
-      .status(HttpStatus.OK)
-      .json(
-        await this.userService.updateUserPassword(
-          id,
-          body.password,
-          body.oldPassword,
-        ),
-      );
-  }
-
   @Delete(":id")
   async deleteUser(@Param("id") id: string, @Res() res: Response) {
     try {
@@ -112,19 +95,19 @@ export class UserController {
     }
   }
 
-  @Get()
-  async getUsers(@Res() res: Response) {
-    try {
-      return res.status(HttpStatus.OK).json(await this.userService.getUsers());
-    } catch (error) {
-      console.log(error);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: "Internal server error",
-        code: 500,
-        data: null,
-      });
-    }
-  }
+  // @Get()
+  // async getUsers(@Res() res: Response) {
+  //   try {
+  //     return res.status(HttpStatus.OK).json(await this.userService.getUsers());
+  //   } catch (error) {
+  //     console.log(error);
+  //     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+  //       message: "Internal server error",
+  //       code: 500,
+  //       data: null,
+  //     });
+  //   }
+  // }
 
   @Post("login")
   async login(@Body() body: UserLoginDto, @Res() res: Response) {
