@@ -155,11 +155,11 @@ export class TravelService {
             // Cập nhật trạng thái
             await Promise.all([
               this.firebaseService.setData(
-                `drivers/${response.id}/status`,
+                `drivers/${driver.id}/status`,
                 "on-trip",
               ),
               this.firebaseService.setData(
-                `drivers/${response.id}/response`,
+                `drivers/${driver.id}/response`,
                 null,
               ),
               this.firebaseService.setData(`travels/${travelId}`, travel),
@@ -418,25 +418,35 @@ export class TravelService {
     timeOut: number,
   ): Promise<any> {
     return new Promise((resolve) => {
+      let isResolved = false;
+      let previousValue = null;
+
       const timer = setTimeout(() => {
-        driverRef.off();
-        resolve(false);
+        if (!isResolved) {
+          isResolved = true;
+          driverRef.off("value", onValueChange);
+          resolve(false);
+        }
       }, timeOut);
 
       const driverRef = this.firebaseService
         .getDatabase()
         .ref(`drivers/${driverId}/response`);
 
-      // Lắng nghe sự thay đổi của tài xế
-      driverRef.on("value", (snapshot) => {
+      const onValueChange = (snapshot) => {
         const response = snapshot.val();
-        // Kiểm tra phản hồi từ tài xế
-        if (response) {
-          clearTimeout(timer); // Ngừng hẹn giờ nếu nhận được phản hồi
-          driverRef.off(); // Ngắt lắng nghe sau khi nhận phản hồi
-          resolve({ response, id: driverId }); // Trả về phản hồi
+        // Chỉ xử lý khi giá trị thay đổi và khác null
+        if (response && response !== previousValue && !isResolved) {
+          console.log("response: ", response, previousValue, driverId);
+          isResolved = true;
+          clearTimeout(timer);
+          driverRef.off("value", onValueChange);
+          resolve({ response, id: driverId });
         }
-      });
+        previousValue = response;
+      };
+
+      driverRef.on("value", onValueChange);
     });
   }
 
