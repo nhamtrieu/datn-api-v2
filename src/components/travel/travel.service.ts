@@ -18,6 +18,9 @@ export class TravelService {
     const user: UserDto = await this.firebaseService.getData(
       `users/${travelBookingDto.userId}`,
     );
+    const userVehicle = user.vehicles.find(
+      (vehicle) => vehicle.status === "on",
+    );
     return new Promise(async (resolve) => {
       console.log("Starting to search for drivers...");
 
@@ -39,8 +42,8 @@ export class TravelService {
           });
 
           resolve({
-            status: "failed",
-            message: "Không tìm được tài xế trong 5 phút",
+            status: 500,
+            message: "Không tìm được tài xế trong 1 phút",
           });
         },
         1 * 60 * 1000,
@@ -117,6 +120,7 @@ export class TravelService {
               userId: travelBookingDto.userId || "",
               driverLocation: JSON.stringify(driver.location),
               userLocation: JSON.stringify(travelBookingDto.pickupLocation),
+              travelUser: JSON.stringify(userVehicle),
             },
           });
 
@@ -189,7 +193,7 @@ export class TravelService {
             });
 
             resolve({
-              status: "success",
+              status: 200,
               message: "Tài xế đã chấp nhận",
               driver: driver,
             });
@@ -210,7 +214,7 @@ export class TravelService {
           },
         });
         resolve({
-          status: "error",
+          status: 500,
           message: "Đã xảy ra lỗi khi đặt xe",
           error: error.message,
         });
