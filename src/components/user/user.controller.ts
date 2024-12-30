@@ -52,6 +52,7 @@ export class UserController {
     @Res() res: Response,
   ) {
     try {
+      console.log(body);
       return res
         .status(HttpStatus.OK)
         .json(await this.userService.updateUser(id, body));

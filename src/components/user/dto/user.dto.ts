@@ -10,22 +10,18 @@ export class UserDto {
   id: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({ type: String })
   fullName: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({ type: String })
   phoneNumber: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({ type: String })
   userAvatar: string;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({ type: String })
   password: string;
 

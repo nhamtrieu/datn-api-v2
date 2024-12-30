@@ -278,7 +278,7 @@ export class DriverService {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Trả về khoảng cách
+    return R * c;
   }
 
   private deg2rad(deg: number): number {
