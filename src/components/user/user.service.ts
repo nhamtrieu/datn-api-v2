@@ -86,7 +86,7 @@ export class UserService {
     const cleanBody = Object.fromEntries(
       Object.entries(body).filter(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ([_, value]) => value !== null && value !== undefined,
+        ([_, value]) => value,
       ),
     );
     console.log("cleanBody", cleanBody);
