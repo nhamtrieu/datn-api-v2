@@ -89,6 +89,7 @@ export class UserService {
         ([_, value]) => value !== null && value !== undefined,
       ),
     );
+    console.log("cleanBody", cleanBody);
     const { password: cleanPassword } = cleanBody;
     if (cleanPassword) {
       if (await bcrypt.compare(cleanPassword, checkUser.password)) {
