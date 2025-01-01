@@ -434,8 +434,7 @@ export class UserService {
 
   async getVehicle(id: string) {
     const vehicles = await this.firebaseService.getData(`users/${id}/vehicles`);
-    const vehiclesDto = Object.keys(vehicles).map((key) => vehicles[key]);
-    if (!vehiclesDto) {
+    if (!vehicles) {
       return {
         status: "success",
         message: "Vehicle fetched successfully",
@@ -443,6 +442,7 @@ export class UserService {
         code: 404,
       };
     }
+    const vehiclesDto = Object.keys(vehicles).map((key) => vehicles[key]);
     const vehicleActive = vehiclesDto.find(
       (vehicle) => vehicle.status === "on",
     );
