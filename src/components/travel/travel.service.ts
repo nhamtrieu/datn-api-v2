@@ -18,16 +18,16 @@ export class TravelService {
     const user: UserDto = await this.firebaseService.getData(
       `users/${travelBookingDto.userId}`,
     );
-    const userVehicle = user.vehicles.find(
-      (vehicle) => vehicle.status === "on",
-    );
-    if (!userVehicle) {
+    if (!user.vehicles) {
       return {
         status: "error",
         message: "Không tìm thấy phương tiện",
         code: 400,
       };
     }
+    const userVehicle = user.vehicles.find(
+      (vehicle) => vehicle.status === "on",
+    );
     return new Promise(async (resolve) => {
       console.log("Starting to search for drivers...");
 
