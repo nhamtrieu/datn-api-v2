@@ -93,12 +93,6 @@ export class UserService {
     const { password: cleanPassword } = cleanBody;
     if (cleanPassword) {
       if (await bcrypt.compare(cleanPassword, checkUser.password)) {
-        return {
-          status: "error",
-          message: "Password is the same",
-          data: null,
-          code: 400,
-        };
       } else {
         const newPassword = await bcrypt.hash(cleanPassword, 10);
         cleanBody.password = newPassword;

@@ -7,19 +7,30 @@ export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly jwtService: JwtService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    const token = req.headers["authorization"]?.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).send("Unauthorized");
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({
+        message: "Không tìm thấy token xác thực",
+      });
     }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Token không đúng định dạng",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
 
     try {
       const decoded = this.jwtService.verify(token);
       req["user"] = decoded;
       next();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      return res.status(401).send("Unauthorized");
+      console.log(err);
+      return res.status(401).json({
+        message: "Token không hợp lệ hoặc đã hết hạn",
+      });
     }
   }
 }
