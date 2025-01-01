@@ -397,12 +397,12 @@ export class UserService {
     }
 
     const vehiclesDto = Object.keys(vehicles).map((key) => vehicles[key]);
-
+    console.log("vehiclesDto", vehiclesDto);
     const vehicle = vehiclesDto.find((vehicle) => vehicle.id === vehicleId);
     const vehicleActive = vehiclesDto.find(
       (vehicle) => vehicle.status === "on",
     );
-
+    console.log("vehicleActive", vehicleActive);
     if (!vehicle) {
       return {
         status: "error",
@@ -411,24 +411,36 @@ export class UserService {
         code: 404,
       };
     }
-
-    if (vehicle.id !== vehicleActive.id) {
-      await Promise.all([
-        this.firebaseService.setData(
-          `users/${id}/vehicles/${vehicleActive.id}/status`,
-          "off",
-        ),
-        this.firebaseService.setData(
-          `users/${id}/vehicles/${vehicleId}/status`,
-          "on",
-        ),
-      ]);
+    if (!vehicleActive) {
+      await this.firebaseService.setData(
+        `users/${id}/vehicles/${vehicleId}/status`,
+        "on",
+      );
       return {
         status: "success",
         message: "Vehicle chosen successfully",
         data: null,
         code: 200,
       };
+    } else {
+      if (vehicle.id !== vehicleActive.id) {
+        await Promise.all([
+          this.firebaseService.setData(
+            `users/${id}/vehicles/${vehicleActive.id}/status`,
+            "off",
+          ),
+          this.firebaseService.setData(
+            `users/${id}/vehicles/${vehicleId}/status`,
+            "on",
+          ),
+        ]);
+        return {
+          status: "success",
+          message: "Vehicle chosen successfully",
+          data: null,
+          code: 200,
+        };
+      }
     }
   }
 

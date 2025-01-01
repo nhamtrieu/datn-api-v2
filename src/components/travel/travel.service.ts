@@ -25,6 +25,7 @@ export class TravelService {
         code: 400,
       };
     }
+    console.log("user.vehicles", user.vehicles);
     const userVehicle = user.vehicles.find(
       (vehicle) => vehicle.status === "on",
     );
