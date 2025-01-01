@@ -367,7 +367,14 @@ export class UserService {
     const vehicles: VehicleDto[] = await this.firebaseService.getData(
       `users/${id}/vehicles`,
     );
-
+    if (!vehicles) {
+      return {
+        status: "success",
+        message: "Vehicles fetched successfully",
+        data: null,
+        code: 200,
+      };
+    }
     const listVehicles = Object.keys(vehicles).map((key) => vehicles[key]);
 
     return {
@@ -428,7 +435,14 @@ export class UserService {
   async getVehicle(id: string) {
     const vehicles = await this.firebaseService.getData(`users/${id}/vehicles`);
     const vehiclesDto = Object.keys(vehicles).map((key) => vehicles[key]);
-
+    if (!vehiclesDto) {
+      return {
+        status: "success",
+        message: "Vehicle fetched successfully",
+        data: null,
+        code: 404,
+      };
+    }
     const vehicleActive = vehiclesDto.find(
       (vehicle) => vehicle.status === "on",
     );

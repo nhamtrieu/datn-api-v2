@@ -21,6 +21,13 @@ export class TravelService {
     const userVehicle = user.vehicles.find(
       (vehicle) => vehicle.status === "on",
     );
+    if (!userVehicle) {
+      return {
+        status: "error",
+        message: "Không tìm thấy phương tiện",
+        code: 400,
+      };
+    }
     return new Promise(async (resolve) => {
       console.log("Starting to search for drivers...");
 
