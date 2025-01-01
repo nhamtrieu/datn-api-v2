@@ -26,7 +26,7 @@ export class TravelService {
       };
     }
     console.log("user.vehicles", user.vehicles);
-    const userVehicle = user.vehicles.find(
+    const userVehicle = Object.values(user.vehicles).find(
       (vehicle) => vehicle.status === "on",
     );
     return new Promise(async (resolve) => {
