@@ -149,6 +149,7 @@ export class UserController {
     @Body() body: { driverId: string; rating: number },
     @Res() res: Response,
   ) {
+    console.log("body rate driver", body);
     return res
       .status(HttpStatus.OK)
       .json(await this.userService.rateDriver(id, body));

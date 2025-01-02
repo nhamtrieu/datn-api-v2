@@ -295,6 +295,11 @@ export class TravelService {
       "available",
     );
 
+    await this.firebaseService.setData(
+      `drivers/${travel.driverId}/response`,
+      null,
+    );
+
     travel.timeEnd = new Date().toISOString();
 
     await this.firebaseService.setData(`travels/${bookingId}`, travel);
